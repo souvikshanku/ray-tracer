@@ -20,7 +20,10 @@ class Vector:
         return Vector(np.array(self) - np.array(other))
 
     def __mul__(self, other):
-        return Vector(np.array(self) * np.array(other))
+        if isinstance(other, Vector):
+            return sum(np.array(self) * np.array(other))
+        else:
+            return Vector(np.array(self) * np.array(other))
 
     def __rmul__(self, other):
         return self.__mul__(other)
