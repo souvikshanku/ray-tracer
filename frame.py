@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 from vector import Vector
@@ -14,6 +15,7 @@ class Canvas:
     def __init__(self, height, width):
         self.height = height
         self.width = width
+        self.distance = 1
         self.frame = np.zeros(shape=(height, width, 3))
 
     def canvas_to_viewport(self, x, y):
@@ -28,10 +30,16 @@ class Canvas:
         for x in range(- self.width // 2, self.width // 2):
             for y in range(- self.height // 2, self.height // 2):
                 pixel_pos = self.canvas_to_viewport(x, y)
-                color = trace_ray(origin, pixel_pos, t_min=1, t_max=np.inf)
+                color = trace_ray(origin, pixel_pos, t_min=self.distance, t_max=np.inf)
                 self.frame[x + self.width // 2, y + self.height // 2] = color
 
-        return self.frame
+        fig = plt.figure(figsize=(5, 5))
+        ax = fig.add_subplot(111)
+        ax.axis('off')
+        ax.imshow(np.rot90(self.frame))
+        plt.show()
+
+        # return np.rot90(self.frame)
 
 
 def trace_ray(start, pixel_pos, t_min, t_max):
@@ -40,7 +48,8 @@ def trace_ray(start, pixel_pos, t_min, t_max):
     closest_sphere = None
     scene = [
         Sphere([0, -1, 3], 1, [1, 0, 0]),
-        Sphere([2, 0, 4], 1, [0, 1, 0])
+        Sphere([2, 0, 4], 1, [0, 1, 0]),
+        Sphere([-2, 0, 4], 1, [0, 0, 1])
     ]
 
     for sphere in scene:
@@ -77,3 +86,8 @@ def get_intersection(start, pixel_pos, sphere):
     t2 = (-b - np.sqrt(discriminant)) / (2*a)
 
     return t1, t2
+
+
+if __name__ == "__main__":
+    canvas = Canvas(height=200, width=200)
+    canvas.render()
