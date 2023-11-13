@@ -1,12 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from vector import Vector
-
 
 class Sphere:
     def __init__(self, centre, radius, color):
-        self.centre = Vector(centre)
+        self.centre = centre
         self.radius = radius
         self.color = color
 
@@ -22,10 +20,10 @@ class Canvas:
         width = 1
         height = 1
         distance = 1
-        return Vector([x * width / self.width, y * height / self.height, distance])
+        return np.array([x * width / self.width, y * height / self.height, distance])
 
     def render(self):
-        origin = Vector([0, 0, 0])
+        origin = np.array([0, 0, 0])
 
         for x in range(- self.width // 2, self.width // 2):
             for y in range(- self.height // 2, self.height // 2):
@@ -73,11 +71,11 @@ def get_intersection(start, pixel_pos, sphere):
     r = sphere.radius
     c_o_vector = start - sphere.centre
 
-    a = pixel_pos * pixel_pos
-    b = 2 * c_o_vector * pixel_pos
-    c = c_o_vector * c_o_vector - r * r
+    a = (pixel_pos * pixel_pos).sum()
+    b = 2 * np.dot(c_o_vector,  pixel_pos)
+    c = np.dot(c_o_vector, c_o_vector) - r * r
 
-    discriminant = b * b - 4 * a * c
+    discriminant = (b * b - 4 * a * c)
 
     if discriminant < 0:
         return np.inf, np.inf
