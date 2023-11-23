@@ -1,15 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from sphere import Sphere, get_intersection_w_sphere
+
 
 BACKGROUND_COLOR = [1, 1, 1]
-
-
-class Sphere:
-    def __init__(self, centre, radius, color):
-        self.centre = centre
-        self.radius = radius
-        self.color = color
 
 
 class Canvas:
@@ -56,15 +51,13 @@ class Canvas:
         ax.imshow(np.rot90(self.frame))
         plt.show()
 
-        # return np.rot90(self.frame)
-
 
 def trace_ray(scene, origin, pixel_pos, t_min, t_max):
     closest_t = np.inf
     closest_sphere = None
 
     for sphere in scene:
-        t1, t2 = get_intersection(origin, pixel_pos, sphere)
+        t1, t2 = get_intersection_w_sphere(origin, pixel_pos, sphere)
 
         if t1 > t_min and t1 < t_max and t1 < closest_t:
             closest_t = t1
@@ -80,29 +73,9 @@ def trace_ray(scene, origin, pixel_pos, t_min, t_max):
     return closest_sphere.color
 
 
-def get_intersection(start, pixel_pos, sphere):
-    r = sphere.radius
-    ray_vector = start - sphere.centre
-
-    a = (pixel_pos * pixel_pos).sum()
-    b = 2 * np.dot(ray_vector,  pixel_pos)
-    c = np.dot(ray_vector, ray_vector) - r * r
-
-    discriminant = (b * b - 4 * a * c)
-
-    if discriminant < 0:
-        return np.inf, np.inf
-
-    t1 = (-b + np.sqrt(discriminant)) / (2*a)
-    t2 = (-b - np.sqrt(discriminant)) / (2*a)
-
-    return t1, t2
-
-
 if __name__ == "__main__":
     canvas = Canvas(height=200, width=200)
     canvas.add_sphere(centre=[0, -1, 3], radius=1, color=[1, 0, 0])
     canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 1, 0])
     canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 0, 1])
-
     canvas.render()
