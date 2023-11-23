@@ -7,6 +7,27 @@ from sphere import Sphere, get_intersection_w_sphere
 BACKGROUND_COLOR = [1, 1, 1]
 
 
+def trace_ray(scene, origin, pixel_pos, t_min, t_max):
+    closest_t = np.inf
+    closest_sphere = None
+
+    for sphere in scene:
+        t1, t2 = get_intersection_w_sphere(origin, pixel_pos, sphere)
+
+        if t1 > t_min and t1 < t_max and t1 < closest_t:
+            closest_t = t1
+            closest_sphere = sphere
+
+        if t2 > t_min and t2 < t_max and t2 < closest_t:
+            closest_t = t2
+            closest_sphere = sphere
+
+    if closest_sphere is None:
+        return BACKGROUND_COLOR
+
+    return closest_sphere.color
+
+
 class Canvas:
     def __init__(self, height, width):
         self.height = height
@@ -18,6 +39,7 @@ class Canvas:
         self.viewport_distance = 1
 
         self.scene = []
+        self.lights = []
         self.frame = np.zeros(shape=(height, width, 3))
 
     def add_sphere(self, centre, radius, color):
@@ -50,27 +72,6 @@ class Canvas:
         ax.axis('off')
         ax.imshow(np.rot90(self.frame))
         plt.show()
-
-
-def trace_ray(scene, origin, pixel_pos, t_min, t_max):
-    closest_t = np.inf
-    closest_sphere = None
-
-    for sphere in scene:
-        t1, t2 = get_intersection_w_sphere(origin, pixel_pos, sphere)
-
-        if t1 > t_min and t1 < t_max and t1 < closest_t:
-            closest_t = t1
-            closest_sphere = sphere
-
-        if t2 > t_min and t2 < t_max and t2 < closest_t:
-            closest_t = t2
-            closest_sphere = sphere
-
-    if closest_sphere is None:
-        return BACKGROUND_COLOR
-
-    return closest_sphere.color
 
 
 if __name__ == "__main__":
