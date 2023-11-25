@@ -1,19 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from light import Light, compute_intensity
 from sphere import Sphere, get_intersection_w_sphere
-from light import Light, compute_lighting
 
 
 BACKGROUND_COLOR = [1, 1, 1]
 
 
-def trace_ray(scene, lights, origin, pixel_pos, t_min, t_max):
+def trace_ray(scene, lights, origin, pixel_coord, t_min, t_max):
     closest_t = np.inf
     closest_sphere = None
 
     for sphere in scene:
-        t1, t2 = get_intersection_w_sphere(origin, pixel_pos, sphere)
+        t1, t2 = get_intersection_w_sphere(origin, pixel_coord, sphere)
 
         if t1 > t_min and t1 < t_max and t1 < closest_t:
             closest_t = t1
@@ -29,11 +29,18 @@ def trace_ray(scene, lights, origin, pixel_pos, t_min, t_max):
     if not lights:
         return closest_sphere.color
 
-    point_on_sphere = origin + closest_t * pixel_pos  # from the eqn, P = O + t(V - O)
+    point_on_sphere = origin + closest_t * pixel_coord  # from the eqn, P = O + t(V - O)
     normal = point_on_sphere - closest_sphere.centre
     normal /= np.sqrt(sum(normal ** 2))
 
-    return closest_sphere.color * compute_lighting(point=pixel_pos, normal=normal, lights=lights)
+    intensity = compute_intensity(
+        point=pixel_coord,
+        normal=normal,
+        lights=lights,
+        specular=closest_sphere.specular
+    )
+
+    return closest_sphere.color * intensity
 
 
 class Canvas:
@@ -50,8 +57,8 @@ class Canvas:
         self.lights = []
         self.frame = np.zeros(shape=(height, width, 3))
 
-    def add_sphere(self, centre, radius, color):
-        self.scene.append(Sphere(centre, radius, color))
+    def add_sphere(self, centre, radius, color, specular):
+        self.scene.append(Sphere(centre, radius, color, specular))
 
     def add_light(self, type, intensity, position=None, direction=None):
         self.lights.append(Light(type, intensity, position, direction))
@@ -68,12 +75,12 @@ class Canvas:
 
         for x in range(- self.width // 2, self.width // 2):
             for y in range(- self.height // 2, self.height // 2):
-                pixel_pos = self.canvas_to_viewport(x, y)
+                pixel_coord = self.canvas_to_viewport(x, y)
                 color = trace_ray(
                     scene=self.scene,
                     lights=self.lights,
                     origin=origin,
-                    pixel_pos=pixel_pos,
+                    pixel_coord=pixel_coord,
                     t_min=self.viewport_distance,
                     t_max=np.inf
                 )
@@ -82,16 +89,16 @@ class Canvas:
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
         ax.axis('off')
-        ax.imshow(np.rot90(self.frame))
+        ax.imshow(np.clip(np.rot90(self.frame), 0, 1))
         plt.show()
 
 
 if __name__ == "__main__":
-    canvas = Canvas(height=400, width=400)
-    canvas.add_sphere(centre=[0, -1, 3], radius=1, color=[1, 0, 0])
-    canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 1, 0])
-    canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 0, 1])
-    canvas.add_sphere(centre=[0, -5001, 0], radius=5000, color=[1, 1, 0])
+    canvas = Canvas(height=200, width=200)
+    canvas.add_sphere(centre=[0, -1, 3], radius=1, color=[1, 0, 0], specular=500)
+    canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 1, 0], specular=500)
+    canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 0, 1], specular=10)
+    canvas.add_sphere(centre=[0, -5001, 0], radius=5000, color=[1, 1, 0], specular=1000)
 
     canvas.add_light(type="ambient", intensity=0.2)
     canvas.add_light(type="point", intensity=0.6, position=(2, 1, 0))
