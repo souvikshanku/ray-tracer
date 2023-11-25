@@ -2,12 +2,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sphere import Sphere, get_intersection_w_sphere
+from light import Light, compute_lighting
 
 
 BACKGROUND_COLOR = [1, 1, 1]
 
 
-def trace_ray(scene, origin, pixel_pos, t_min, t_max):
+def trace_ray(scene, lights, origin, pixel_pos, t_min, t_max):
     closest_t = np.inf
     closest_sphere = None
 
@@ -25,7 +26,14 @@ def trace_ray(scene, origin, pixel_pos, t_min, t_max):
     if closest_sphere is None:
         return BACKGROUND_COLOR
 
-    return closest_sphere.color
+    if not lights:
+        return closest_sphere.color
+
+    point_on_sphere = origin + closest_t * pixel_pos  # from the eqn, P = O + t(V - O)
+    normal = point_on_sphere - closest_sphere.centre
+    normal /= np.sqrt(sum(normal ** 2))
+
+    return closest_sphere.color * compute_lighting(point=pixel_pos, normal=normal, lights=lights)
 
 
 class Canvas:
@@ -45,6 +53,9 @@ class Canvas:
     def add_sphere(self, centre, radius, color):
         self.scene.append(Sphere(centre, radius, color))
 
+    def add_light(self, type, intensity, position=None, direction=None):
+        self.lights.append(Light(type, intensity, position, direction))
+
     def canvas_to_viewport(self, x, y):
         vx = x * self.viewport_width / self.width
         vy = y * self.viewport_height / self.height
@@ -60,6 +71,7 @@ class Canvas:
                 pixel_pos = self.canvas_to_viewport(x, y)
                 color = trace_ray(
                     scene=self.scene,
+                    lights=self.lights,
                     origin=origin,
                     pixel_pos=pixel_pos,
                     t_min=self.viewport_distance,
@@ -75,8 +87,14 @@ class Canvas:
 
 
 if __name__ == "__main__":
-    canvas = Canvas(height=200, width=200)
+    canvas = Canvas(height=400, width=400)
     canvas.add_sphere(centre=[0, -1, 3], radius=1, color=[1, 0, 0])
     canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 1, 0])
     canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 0, 1])
+    canvas.add_sphere(centre=[0, -5001, 0], radius=5000, color=[1, 1, 0])
+
+    canvas.add_light(type="ambient", intensity=0.2)
+    canvas.add_light(type="point", intensity=0.6, position=(2, 1, 0))
+    canvas.add_light(type="directinal", intensity=0.2, direction=(1, 4, 4))
+
     canvas.render()

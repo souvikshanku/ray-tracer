@@ -3,9 +3,9 @@ import numpy as np
 
 class Sphere:
     def __init__(self, centre, radius, color):
-        self.centre = centre
+        self.centre = np.array(centre)
         self.radius = radius
-        self.color = color
+        self.color = np.array(color)
 
 
 def get_intersection_w_sphere(start, pixel_pos, sphere):
