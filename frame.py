@@ -55,7 +55,7 @@ class Canvas:
 
         intensity = compute_intensity(
             scene=scene,
-            point=pixel_coord,
+            point_on_sphere=point_on_sphere,
             normal=normal,
             lights=lights,
             specular=closest_sphere.specular
@@ -85,10 +85,10 @@ class Canvas:
 
 
 if __name__ == "__main__":
-    canvas = Canvas(height=200, width=200)
+    canvas = Canvas(height=400, width=400)
     canvas.add_sphere(centre=[0, -1, 3], radius=1, color=[1, 0, 0], specular=500)
-    canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 1, 0], specular=500)
-    canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 0, 1], specular=10)
+    canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 0, 1], specular=500)
+    canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 1, 0], specular=10)
     canvas.add_sphere(centre=[0, -5001, 0], radius=5000, color=[1, 1, 0], specular=1000)
 
     canvas.add_light(type="ambient", intensity=0.2)
