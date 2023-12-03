@@ -1,5 +1,7 @@
 import numpy as np
 
+from sphere import get_closest_intersection
+
 
 class Light:
     def __init__(self, type, intensity, position=None, direction=None):
@@ -13,7 +15,7 @@ def length(vector):
     return np.sqrt(sum(vector**2))
 
 
-def compute_intensity(point, normal, lights, specular):
+def compute_intensity(scene, point, normal, lights, specular):
     intensity = 0
 
     for light in lights:
@@ -22,8 +24,23 @@ def compute_intensity(point, normal, lights, specular):
         else:
             if light.type == "point":
                 light_vec = light.position - point
+                t_max = 1
             else:
                 light_vec = light.direction
+                t_max = np.inf
+
+            # Shadow Check
+            shadow_sphere, _ = get_closest_intersection(
+                scene=scene,
+                origin=light_vec,
+                pixel_coord=point,
+                t_min=0.0001,
+                t_max=t_max
+            )
+
+            if shadow_sphere is not None:
+                # print(shadow_sphere)
+                continue
 
             # Diffused reflection
             nl = np.dot(normal, light_vec)

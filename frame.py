@@ -2,45 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from light import Light, compute_intensity
-from sphere import Sphere, get_intersection_w_sphere
+from sphere import Sphere, get_closest_intersection
 
 
 BACKGROUND_COLOR = [1, 1, 1]
-
-
-def trace_ray(scene, lights, origin, pixel_coord, t_min, t_max):
-    closest_t = np.inf
-    closest_sphere = None
-
-    for sphere in scene:
-        t1, t2 = get_intersection_w_sphere(origin, pixel_coord, sphere)
-
-        if t1 > t_min and t1 < t_max and t1 < closest_t:
-            closest_t = t1
-            closest_sphere = sphere
-
-        if t2 > t_min and t2 < t_max and t2 < closest_t:
-            closest_t = t2
-            closest_sphere = sphere
-
-    if closest_sphere is None:
-        return BACKGROUND_COLOR
-
-    if not lights:
-        return closest_sphere.color
-
-    point_on_sphere = origin + closest_t * pixel_coord  # from the eqn, P = O + t(V - O)
-    normal = point_on_sphere - closest_sphere.centre
-    normal /= np.sqrt(sum(normal ** 2))
-
-    intensity = compute_intensity(
-        point=pixel_coord,
-        normal=normal,
-        lights=lights,
-        specular=closest_sphere.specular
-    )
-
-    return closest_sphere.color * intensity
 
 
 class Canvas:
@@ -70,15 +35,41 @@ class Canvas:
 
         return np.array([vx, vy, vz])
 
+    def trace_ray(self, origin, pixel_coord, t_min, t_max):
+        scene = self.scene
+        lights = self.lights
+
+        closest_sphere, closest_t = get_closest_intersection(
+            scene, origin, pixel_coord, t_min, t_max
+        )
+
+        if closest_sphere is None:
+            return BACKGROUND_COLOR
+
+        if not lights:
+            return closest_sphere.color
+
+        point_on_sphere = origin + closest_t * pixel_coord  # from the eqn, P = O + t(V - O)
+        normal = point_on_sphere - closest_sphere.centre
+        normal /= np.sqrt(sum(normal ** 2))
+
+        intensity = compute_intensity(
+            scene=scene,
+            point=pixel_coord,
+            normal=normal,
+            lights=lights,
+            specular=closest_sphere.specular
+        )
+
+        return closest_sphere.color * intensity
+
     def render(self):
         origin = np.array([0, 0, 0])
 
         for x in range(- self.width // 2, self.width // 2):
             for y in range(- self.height // 2, self.height // 2):
                 pixel_coord = self.canvas_to_viewport(x, y)
-                color = trace_ray(
-                    scene=self.scene,
-                    lights=self.lights,
+                color = self.trace_ray(
                     origin=origin,
                     pixel_coord=pixel_coord,
                     t_min=self.viewport_distance,
