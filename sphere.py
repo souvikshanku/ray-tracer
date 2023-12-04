@@ -1,9 +1,6 @@
 import numpy as np
 
 
-BACKGROUND_COLOR = [1, 1, 1]
-
-
 class Sphere:
     def __init__(self, centre, radius, color, specular=None, reflective=None):
         self.centre = np.array(centre)

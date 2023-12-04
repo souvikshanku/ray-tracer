@@ -35,13 +35,11 @@ class Canvas:
 
         return np.array([vx, vy, vz])
 
-    def trace_ray(self, origin, pixel_coord, t_min, t_max, recursion_depth=4):
+    def trace_ray(self, start, end, t_min, t_max, recursion_depth=4):
         scene = self.scene
         lights = self.lights
 
-        closest_sphere, closest_t = get_closest_intersection(
-            scene, origin, pixel_coord, t_min, t_max
-        )
+        closest_sphere, closest_t = get_closest_intersection(scene, start, end, t_min, t_max)
 
         if closest_sphere is None:
             return BACKGROUND_COLOR
@@ -49,7 +47,7 @@ class Canvas:
         if not lights:
             return closest_sphere.color
 
-        point_on_sphere = origin + closest_t * pixel_coord  # from the eqn, P = O + t(V - O)
+        point_on_sphere = start + closest_t * end  # from the eqn, P = O + t(V - O)
         normal = point_on_sphere - closest_sphere.centre
         normal /= np.sqrt(sum(normal ** 2))
 
@@ -68,10 +66,10 @@ class Canvas:
             return local_color
 
         # Same as `Reflected light Vector` from ./light.py
-        reflected_ray = 2 * normal * np.dot(normal, - pixel_coord) - pixel_coord
+        reflected_ray = 2 * normal * np.dot(normal, - end) - end
         reflected_color = self.trace_ray(
-            origin=point_on_sphere,
-            pixel_coord=reflected_ray,
+            start=point_on_sphere,
+            end=reflected_ray,
             t_min=0.001,
             t_max=np.inf,
             recursion_depth=recursion_depth - 1
@@ -80,14 +78,14 @@ class Canvas:
         return local_color * (1 - r) + reflected_color * r
 
     def render(self):
-        origin = np.array([0, 0, 0])
+        origin = np.array([0, 0, 0])  # The camera position
 
         for x in range(- self.width // 2, self.width // 2):
             for y in range(- self.height // 2, self.height // 2):
                 pixel_coord = self.canvas_to_viewport(x, y)
                 color = self.trace_ray(
-                    origin=origin,
-                    pixel_coord=pixel_coord,
+                    start=origin,
+                    end=pixel_coord,
                     t_min=self.viewport_distance,
                     t_max=np.inf
                 )
@@ -97,6 +95,7 @@ class Canvas:
         ax = fig.add_subplot(111)
         ax.axis('off')
         ax.imshow(np.clip(np.rot90(self.frame), 0, 1))
+        fig.savefig('scene.png', bbox_inches='tight', pad_inches=0)
         plt.show()
 
 
