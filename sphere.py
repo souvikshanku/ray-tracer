@@ -5,11 +5,12 @@ BACKGROUND_COLOR = [1, 1, 1]
 
 
 class Sphere:
-    def __init__(self, centre, radius, color, specular=None):
+    def __init__(self, centre, radius, color, specular=None, reflective=None):
         self.centre = np.array(centre)
         self.radius = radius
         self.color = np.array(color)
         self.specular = specular
+        self.reflective = reflective
 
 
 def get_intersection_w_sphere(origin, pixel_pos, sphere):

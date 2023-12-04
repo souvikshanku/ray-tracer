@@ -5,7 +5,7 @@ from light import Light, compute_intensity
 from sphere import Sphere, get_closest_intersection
 
 
-BACKGROUND_COLOR = [1, 1, 1]
+BACKGROUND_COLOR = np.array([0, 0, 0])
 
 
 class Canvas:
@@ -22,8 +22,8 @@ class Canvas:
         self.lights = []
         self.frame = np.zeros(shape=(height, width, 3))
 
-    def add_sphere(self, centre, radius, color, specular):
-        self.scene.append(Sphere(centre, radius, color, specular))
+    def add_sphere(self, centre, radius, color, specular, reflective):
+        self.scene.append(Sphere(centre, radius, color, specular, reflective))
 
     def add_light(self, type, intensity, position=None, direction=None):
         self.lights.append(Light(type, intensity, position, direction))
@@ -35,7 +35,7 @@ class Canvas:
 
         return np.array([vx, vy, vz])
 
-    def trace_ray(self, origin, pixel_coord, t_min, t_max):
+    def trace_ray(self, origin, pixel_coord, t_min, t_max, recursion_depth=4):
         scene = self.scene
         lights = self.lights
 
@@ -61,7 +61,23 @@ class Canvas:
             specular=closest_sphere.specular
         )
 
-        return closest_sphere.color * intensity
+        local_color = closest_sphere.color * intensity
+
+        r = closest_sphere.reflective
+        if recursion_depth <= 0 or r <= 0:
+            return local_color
+
+        # Same as `Reflected light Vector` from ./light.py
+        reflected_ray = 2 * normal * np.dot(normal, - pixel_coord) - pixel_coord
+        reflected_color = self.trace_ray(
+            origin=point_on_sphere,
+            pixel_coord=reflected_ray,
+            t_min=0.001,
+            t_max=np.inf,
+            recursion_depth=recursion_depth - 1
+        )
+
+        return local_color * (1 - r) + reflected_color * r
 
     def render(self):
         origin = np.array([0, 0, 0])
@@ -86,10 +102,10 @@ class Canvas:
 
 if __name__ == "__main__":
     canvas = Canvas(height=400, width=400)
-    canvas.add_sphere(centre=[0, -1, 3], radius=1, color=[1, 0, 0], specular=500)
-    canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 0, 1], specular=500)
-    canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 1, 0], specular=10)
-    canvas.add_sphere(centre=[0, -5001, 0], radius=5000, color=[1, 1, 0], specular=1000)
+    canvas.add_sphere(centre=[0, -1, 3], radius=1, color=[1, 0, 0], specular=500, reflective=0.2)
+    canvas.add_sphere(centre=[2, 0, 4], radius=1, color=[0, 0, 1], specular=500, reflective=0.3)
+    canvas.add_sphere(centre=[-2, 0, 4], radius=1, color=[0, 1, 0], specular=10, reflective=0.4)
+    canvas.add_sphere(centre=[0, -5001, 0], radius=5000, color=[1, 1, 0], specular=1000, reflective=0.5)  # noqa
 
     canvas.add_light(type="ambient", intensity=0.2)
     canvas.add_light(type="point", intensity=0.6, position=(2, 1, 0))
