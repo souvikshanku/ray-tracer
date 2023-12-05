@@ -1,6 +1,6 @@
 import numpy as np
 
-from sphere import get_closest_intersection
+from ray_tracer.sphere import get_closest_intersection
 
 
 class Light:
