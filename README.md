@@ -4,7 +4,7 @@
   <img src="scene.png" width="250"/>
 </p>
 
-A simple Ray Tracer built with python, inspired by and based on [Gabriel Gambetta](https://github.com/ggambetta)'s awesome [book](https://www.gabrielgambetta.com/computer-graphics-from-scratch/#part-i:-raytracing).
+A simple Ray Tracer built with python, inspired by and based on [Gabriel Gambetta](https://github.com/ggambetta)'s awesome [book](https://www.gabrielgambetta.com/computer-graphics-from-scratch/).
 
 ## Example Usage
 
