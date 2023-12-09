@@ -1,6 +1,14 @@
 import numpy as np
 
+from enum import Enum
+
 from ray_tracer.sphere import get_closest_intersection
+
+
+class LightType(Enum):
+    AMBIENT = "ambient"
+    DIRECTIONAL = "directional"
+    POINT = "POINT"
 
 
 class Light:
@@ -19,10 +27,10 @@ def compute_intensity(scene, point_on_sphere, normal, lights, specular):
     intensity = 0
 
     for light in lights:
-        if light.type == "ambient":
+        if light.type == LightType.AMBIENT:
             intensity += light.intensity
         else:
-            if light.type == "point":
+            if light.type == LightType.POINT:
                 light_vec = light.position - point_on_sphere
                 t_max = 1
             else:
